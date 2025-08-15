@@ -390,13 +390,13 @@ VAR shnekorotor_C_task = "none"
     
 = assign_ignat
     // Починка основных объектов требует доступа к их зонам
-    + {zone_8_accessible} [Чинить Теплостанцию (8) Требуется запчасть!]
+    + {zone_8_accessible and heat_station_status == "broken"} [Чинить Теплостанцию (8) Требуется запчасть!]
         ~ ignat_task = "fix_heat_station"
         -> assignment_loop
-    + {zone_5_accessible} [Чинить Медпункт (5) Требуется запчасть!]
+    + {zone_5_accessible and med_point_status == "broken"} [Чинить Медпункт (5) Требуется запчасть!]
         ~ ignat_task = "fix_med_point"
         -> assignment_loop
-    + {zone_4_accessible} [Чинить Теплицу (4) Требуется запчасть!]
+    + {zone_4_accessible and greenhouse_status == "broken"} [Чинить Теплицу (4) Требуется запчасть!]
         ~ ignat_task = "fix_greenhouse"
         -> assignment_loop
 
@@ -422,13 +422,13 @@ VAR shnekorotor_C_task = "none"
 // Узел для Маши идентичен Игнату
 = assign_masha
     // Починка основных объектов требует доступа к их зонам
-    + {zone_8_accessible} [Чинить Теплостанцию (8) Требуется запчасть!]
+    + {zone_8_accessible and heat_station_status == "broken"} [Чинить Теплостанцию (8) Требуется запчасть!]
         ~ masha_task = "fix_heat_station"
         -> assignment_loop
-    + {zone_5_accessible} [Чинить Медпункт (5) Требуется запчасть!]
+    + {zone_5_accessible and med_point_status == "broken"} [Чинить Медпункт (5) Требуется запчасть!]
         ~ masha_task = "fix_med_point"
         -> assignment_loop
-    + {zone_4_accessible} [Чинить Теплицу (4) Требуется запчасть!]
+    + {zone_4_accessible and greenhouse_status == "broken"} [Чинить Теплицу (4) Требуется запчасть!]
         ~ masha_task = "fix_greenhouse"
         -> assignment_loop
 
@@ -725,354 +725,350 @@ VAR shnekorotor_C_task = "none"
     -> player_actions_phase              // Просто переходим к следующей фазе
 }
 
+// ШАГ 1: УЗЕЛ-ДИСПЕТЧЕР
 === player_actions_phase ===
-// =======================================================
-// БЛОК 1: ПЕРЕХВАТ ДЕЙСТВИЙ (ОСОБЫЕ ТРИГГЕРЫ)
-// Проверяем, не нужно ли заменить стандартное действие на диалог.
-// =======================================================
-// Триггер для Клуба
-{ (nadya_task == "deliver_part_to_3" or artem_task == "deliver_part_to_3") and (andreyka_location == "club" or sonya_tonya_location == "club" or kirillka_location == "club") and club_drone_status == "broken" and not club_drone_repair_authorized and not club_repair_dialogue_seen:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_club = parts_at_club + 1
-    -> scene_initiate_club_repair
-}
-// Триггер для Теплицы
-{ (nadya_task == "deliver_part_to_4" or artem_task == "deliver_part_to_4") and kirillka_location == "greenhouse" and greenhouse_drone_status == "broken" and not greenhouse_drone_repair_authorized and not greenhouse_repair_dialogue_seen:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_greenhouse = parts_at_greenhouse + 1
-    -> scene_initiate_greenhouse_repair
-}
-// =======================================================
-// БЛОК 2: ОБРАБОТКА СТАНДАРТНЫХ ДЕЙСТВИЙ
-// Если триггеры не сработали, выполняем обычные задачи.
-// =======================================================
-// --- ОБРАБОТКА ДЕЙСТВИЙ ПОДРОСТКОВ ---
+    -> process_special_triggers
 
-// === ЗАДАЧИ НАДИ ===
-{ nadya_task == "deliver_part_to_8" and parts_at_warehouse > 0:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_heat_station = parts_at_heat_station + 1
-    ~ nadya_location = 8
-}
-{ nadya_task == "deliver_part_to_5" and parts_at_warehouse > 0:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_med_point = parts_at_med_point + 1
-    ~ nadya_location = 5
-}
-{ nadya_task == "deliver_part_to_4" and parts_at_warehouse > 0:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_greenhouse = parts_at_greenhouse + 1
-    ~ nadya_location = 4
-}
-{ nadya_task == "deliver_part_to_3" and parts_at_warehouse > 0:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_club = parts_at_club + 1
-    ~ nadya_location = 3
-}
-{ nadya_task == "deliver_part_to_shnek_A" and parts_at_warehouse > 0:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_shnek_A_base = parts_at_shnek_A_base + 1
-    ~ nadya_location = 7
-}
-{ nadya_task == "deliver_part_to_shnek_B" and parts_at_warehouse > 0:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_shnek_B_base = parts_at_shnek_B_base + 1
-    ~ nadya_location = 2
-}
-{ nadya_task == "deliver_part_to_shnek_C" and parts_at_warehouse > 0:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_shnek_C_base = parts_at_shnek_C_base + 1
-    ~ nadya_location = 9
-}
-{ nadya_task == "babysit_andreyka":
-    // Действие присмотра выполнено. Его эффект учтен в malyshi_ai_phase.
-    ~ nadya_location = 7
-}
-// НОВЫЙ БЛОК ДЛЯ СОПРОВОЖДЕНИЯ
-{ nadya_task == "escort_andreyka_to_club":
-    ~ andreyka_location = "club"  // Меняем местоположение малыша
-    ~ nadya_location = 3          // Перемещаем Надю в Клуб на этот ход
-}
+// ШАГ 2: СТЕЖОК ДЛЯ ОСОБЫХ ТРИГГЕРОВ-ДИАЛОГОВ
+= process_special_triggers
+    { (nadya_task == "deliver_part_to_3" or artem_task == "deliver_part_to_3") and (andreyka_location == "club" or sonya_tonya_location == "club" or kirillka_location == "club") and club_drone_status == "broken" and not club_drone_repair_authorized and not club_repair_dialogue_seen:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_club = parts_at_club + 1
+        -> scene_initiate_club_repair
+    }
+    { (nadya_task == "deliver_part_to_4" or artem_task == "deliver_part_to_4") and kirillka_location == "greenhouse" and greenhouse_drone_status == "broken" and not greenhouse_drone_repair_authorized and not greenhouse_repair_dialogue_seen:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_greenhouse = parts_at_greenhouse + 1
+        -> scene_initiate_greenhouse_repair
+    }
+    
+    -> process_logistics_actions
 
-// === ЗАДАЧИ АРТЕМА ===
-{ artem_task == "heal" and med_point_status == "ok" and sonya_tonya_health_status == "injured":
-    ~ sonya_tonya_health_status = "healthy"
-    ~ sonya_tonya_injured_turns = 0
-    ~ artem_location = 5
-}
-{ artem_task == "deliver_part_to_8" and parts_at_warehouse > 0:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_heat_station = parts_at_heat_station + 1
-    ~ artem_location = 8
-}
-{ artem_task == "deliver_part_to_5" and parts_at_warehouse > 0:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_med_point = parts_at_med_point + 1
-    ~ artem_location = 5
-}
-{ artem_task == "deliver_part_to_4" and parts_at_warehouse > 0:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_greenhouse = parts_at_greenhouse + 1
-    ~ artem_location = 4
-}
-{ artem_task == "deliver_part_to_3" and parts_at_warehouse > 0:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_club = parts_at_club + 1
-    ~ artem_location = 3
-}
-{ artem_task == "deliver_part_to_shnek_A" and parts_at_warehouse > 0:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_shnek_A_base = parts_at_shnek_A_base + 1
-    ~ artem_location = 7
-}
-{ artem_task == "deliver_part_to_shnek_B" and parts_at_warehouse > 0:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_shnek_B_base = parts_at_shnek_B_base + 1
-    ~ artem_location = 2
-}
-{ artem_task == "deliver_part_to_shnek_C" and parts_at_warehouse > 0:
-    ~ parts_at_warehouse = parts_at_warehouse - 1
-    ~ parts_at_shnek_C_base = parts_at_shnek_C_base + 1
-    ~ artem_location = 9
-}
-{ artem_task == "babysit_sonya_tonya":
-    ~ artem_location = 2
-}
-{ artem_task == "escort_sonya_tonya_to_club":
-    ~ sonya_tonya_location = "club" // Меняем местоположение малышей
-    ~ artem_location = 3            // Перемещаем Артема в Клуб на этот ход
-}
+// ШАГ 3: СТЕЖОК ДЛЯ ЛОГИСТИКИ И СОПРОВОЖДЕНИЯ
+= process_logistics_actions
+    // --- ЗАДАЧИ НАДИ ---
+    { nadya_task == "deliver_part_to_8" and parts_at_warehouse > 0:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_heat_station = parts_at_heat_station + 1
+        ~ nadya_location = 8
+    }
+    { nadya_task == "deliver_part_to_5" and parts_at_warehouse > 0:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_med_point = parts_at_med_point + 1
+        ~ nadya_location = 5
+    }
+    { nadya_task == "deliver_part_to_4" and parts_at_warehouse > 0:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_greenhouse = parts_at_greenhouse + 1
+        ~ nadya_location = 4
+    }
+    { nadya_task == "deliver_part_to_3" and parts_at_warehouse > 0:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_club = parts_at_club + 1
+        ~ nadya_location = 3
+    }
+    { nadya_task == "deliver_part_to_shnek_A" and parts_at_warehouse > 0:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_shnek_A_base = parts_at_shnek_A_base + 1
+        ~ nadya_location = 7
+    }
+    { nadya_task == "deliver_part_to_shnek_B" and parts_at_warehouse > 0:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_shnek_B_base = parts_at_shnek_B_base + 1
+        ~ nadya_location = 2
+    }
+    { nadya_task == "deliver_part_to_shnek_C" and parts_at_warehouse > 0:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_shnek_C_base = parts_at_shnek_C_base + 1
+        ~ nadya_location = 9
+    }
+    { nadya_task == "babysit_andreyka":
+        ~ nadya_location = 7
+    }
+    { nadya_task == "escort_andreyka_to_club":
+        ~ andreyka_location = "club"
+        ~ nadya_location = 3
+    }
 
-// НОВЫЙ БЛОК ДЛЯ СОПРОВОЖДЕНИЯ КИРИЛКИ
+    // --- ЛОГИСТИЧЕСКИЕ ЗАДАЧИ АРТЕМА ---
+    { artem_task == "deliver_part_to_8" and parts_at_warehouse > 0:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_heat_station = parts_at_heat_station + 1
+        ~ artem_location = 8
+    }
+    { artem_task == "deliver_part_to_5" and parts_at_warehouse > 0:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_med_point = parts_at_med_point + 1
+        ~ artem_location = 5
+    }
+    { artem_task == "deliver_part_to_4" and parts_at_warehouse > 0:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_greenhouse = parts_at_greenhouse + 1
+        ~ artem_location = 4
+    }
+    { artem_task == "deliver_part_to_3" and parts_at_warehouse > 0:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_club = parts_at_club + 1
+        ~ artem_location = 3
+    }
+    { artem_task == "deliver_part_to_shnek_A" and parts_at_warehouse > 0:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_shnek_A_base = parts_at_shnek_A_base + 1
+        ~ artem_location = 7
+    }
+    { artem_task == "deliver_part_to_shnek_B" and parts_at_warehouse > 0:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_shnek_B_base = parts_at_shnek_B_base + 1
+        ~ artem_location = 2
+    }
+    { artem_task == "deliver_part_to_shnek_C" and parts_at_warehouse > 0:
+        ~ parts_at_warehouse = parts_at_warehouse - 1
+        ~ parts_at_shnek_C_base = parts_at_shnek_C_base + 1
+        ~ artem_location = 9
+    }
+    { artem_task == "babysit_sonya_tonya":
+        ~ artem_location = 2
+    }
+    { artem_task == "escort_sonya_tonya_to_club":
+        ~ sonya_tonya_location = "club"
+        ~ artem_location = 3
+    }
     { artem_task == "escort_kirillka_to_greenhouse":
-    ~ kirillka_location = "greenhouse" // Меняем местоположение малыша
-    ~ artem_location = 4               // Перемещаем Артема в Теплицу на этот ход
+        ~ kirillka_location = "greenhouse"
+        ~ artem_location = 4
     }
-
-// === ЗАДАЧИ ИГНАТА И МАШИ ===
-// Улучшенная структура: один блок на каждое возможное действие.
-
-// --- Починка Теплостанции (8) ---
-{ (ignat_task == "fix_heat_station" or masha_task == "fix_heat_station") and heat_station_status == "broken" and parts_at_heat_station > 0:
-    // Общая логика
-    ~ heat_station_status = "ok"
-    ~ heat_station_just_fixed = true
-    ~ heat_station_broken_turns = 0
-    ~ parts_at_heat_station = parts_at_heat_station - 1
     
-    { ignat_task == "fix_heat_station":
-        ~ ignat_location = 8
-    }
-    { masha_task == "fix_heat_station":
-        ~ masha_location = 8
-    }
-}
+    -> process_medical_actions
 
-// --- Починка Медпункта (5) ---
-{ (ignat_task == "fix_med_point" or masha_task == "fix_med_point") and med_point_status == "broken" and parts_at_med_point > 0:
-    // Общая логика
-    ~ med_point_status = "ok"
-    ~ med_point_just_fixed = true
-    ~ parts_at_med_point = parts_at_med_point - 1
+// ШАГ 4: СТЕЖОК ДЛЯ МЕДИЦИНСКИХ ДЕЙСТВИЙ
+= process_medical_actions
+    { artem_task == "heal" and med_point_status == "ok" and sonya_tonya_health_status == "injured":
+        ~ sonya_tonya_health_status = "healthy"
+        ~ sonya_tonya_injured_turns = 0
+        ~ artem_location = 5
+    }
+    -> process_engineering_actions
+
+// ШАГ 5: СТЕЖОК ДЛЯ ИНЖЕНЕРНЫХ РАБОТ И ЗАБОТЫ О КИРИЛКЕ
+= process_engineering_actions
+    // --- Починка Теплостанции (8) ---
+    { (ignat_task == "fix_heat_station" or masha_task == "fix_heat_station") and heat_station_status == "broken" and parts_at_heat_station > 0:
+        ~ heat_station_status = "ok"
+        ~ heat_station_just_fixed = true
+        ~ heat_station_broken_turns = 0
+        ~ parts_at_heat_station = parts_at_heat_station - 1
+        
+        { ignat_task == "fix_heat_station":
+            ~ ignat_location = 8
+        }
+        { masha_task == "fix_heat_station":
+            ~ masha_location = 8
+        }
+    }
     
-    // Уникальная логика
-    { ignat_task == "fix_med_point":
-        ~ ignat_location = 5
-    }
-    { masha_task == "fix_med_point":
-        ~ masha_location = 5
-    }
-}
+    // --- Починка Медпункта (5) ---
+    { (ignat_task == "fix_med_point" or masha_task == "fix_med_point") and med_point_status == "broken" and parts_at_med_point > 0:
+        ~ med_point_status = "ok"
+        ~ med_point_just_fixed = true
+        ~ parts_at_med_point = parts_at_med_point - 1
 
-// --- Починка Теплицы (4) ---
-{ (ignat_task == "fix_greenhouse" or masha_task == "fix_greenhouse") and greenhouse_status == "broken" and parts_at_greenhouse > 0:
-    ~ greenhouse_status = "ok"
-    ~ greenhouse_just_fixed = true 
-    ~ parts_at_greenhouse = parts_at_greenhouse - 1
+        { ignat_task == "fix_med_point":
+            ~ ignat_location = 5
+        }
+        { masha_task == "fix_med_point":
+            ~ masha_location = 5
+        }
+    }
+
+    // --- Починка Теплицы (4) ---
+    { (ignat_task == "fix_greenhouse" or masha_task == "fix_greenhouse") and greenhouse_status == "broken" and parts_at_greenhouse > 0:
+        ~ greenhouse_status = "ok"
+        ~ greenhouse_just_fixed = true 
+        ~ parts_at_greenhouse = parts_at_greenhouse - 1
+        
+        { ignat_task == "fix_greenhouse":
+            ~ ignat_location = 4
+        }
+        { masha_task == "fix_greenhouse":
+            ~ masha_location = 4
+        }
+    }
+
+    // --- Починка Шнекоротора А (База 7) ---
+    { (ignat_task == "fix_shnek_A" or masha_task == "fix_shnek_A") and shnekorotor_A_status == "broken" and parts_at_shnek_A_base > 0:
+        ~ shnekorotor_A_status = "discharged"
+        ~ parts_at_shnek_A_base = parts_at_shnek_A_base - 1
+        { ignat_task == "fix_shnek_A":
+            ~ ignat_location = 7
+        }
+        { masha_task == "fix_shnek_A":
+            ~ masha_location = 7
+        }
+    }
     
-    // Уникальная логика
-    { ignat_task == "fix_greenhouse":
-        ~ ignat_location = 4
+    // --- Починка Шнекоротора B (База 2) ---
+    { (ignat_task == "fix_shnek_B" or masha_task == "fix_shnek_B") and shnekorotor_B_status == "broken" and parts_at_shnek_B_base > 0:
+        ~ shnekorotor_B_status = "discharged"
+        ~ parts_at_shnek_B_base = parts_at_shnek_B_base - 1
+        { ignat_task == "fix_shnek_B":
+            ~ ignat_location = 2
+        }
+        { masha_task == "fix_shnek_B":
+            ~ masha_location = 2
+        }
     }
-    { masha_task == "fix_greenhouse":
-        ~ masha_location = 4
-    }
-}
 
-// --- Починка Шнекоротора А (База 7) ---
-{ (ignat_task == "fix_shnek_A" or masha_task == "fix_shnek_A") and shnekorotor_A_status == "broken" and parts_at_shnek_A_base > 0:
-    ~ shnekorotor_A_status = "discharged"
-    ~ parts_at_shnek_A_base = parts_at_shnek_A_base - 1
-    { ignat_task == "fix_shnek_A":
-        ~ ignat_location = 7
+    // --- Починка Шнекоротора C (База 9) ---
+    { (ignat_task == "fix_shnek_C" or masha_task == "fix_shnek_C") and shnekorotor_C_status == "broken" and parts_at_shnek_C_base > 0:
+        ~ shnekorotor_C_status = "discharged"
+        ~ parts_at_shnek_C_base = parts_at_shnek_C_base - 1
+        { ignat_task == "fix_shnek_C":
+            ~ ignat_location = 9
+        }
+        { masha_task == "fix_shnek_C":
+            ~ masha_location = 9
+        }
     }
-    { masha_task == "fix_shnek_A":
-        ~ masha_location = 7
-    }
-}
 
-// --- Починка Шнекоротора B (База 2) ---
-{ (ignat_task == "fix_shnek_B" or masha_task == "fix_shnek_B") and shnekorotor_B_status == "broken" and parts_at_shnek_B_base > 0:
-    ~ shnekorotor_B_status = "discharged"
-    ~ parts_at_shnek_B_base = parts_at_shnek_B_base - 1
-    { ignat_task == "fix_shnek_B":
-        ~ ignat_location = 2
-    }
-    { masha_task == "fix_shnek_B":
-        ~ masha_location = 2
-    }
-}
-
-// --- Починка Шнекоротора C (База 9) ---
-{ (ignat_task == "fix_shnek_C" or masha_task == "fix_shnek_C") and shnekorotor_C_status == "broken" and parts_at_shnek_C_base > 0:
-    ~ shnekorotor_C_status = "discharged"
-    ~ parts_at_shnek_C_base = parts_at_shnek_C_base - 1
-    { ignat_task == "fix_shnek_C":
+    // --- Присмотр за Кирилкой (в доме 9) ---
+    { ignat_task == "babysit_kirillka" or masha_task == "babysit_kirillka":
+        { ignat_task == "babysit_kirillka":
         ~ ignat_location = 9
+        }
+        { masha_task == "babysit_kirillka":
+            ~ masha_location = 9
+        }
     }
-    { masha_task == "fix_shnek_C":
-        ~ masha_location = 9
+
+    // --- Сопровождение Кирилки в Клуб (3) ---
+    { ignat_task == "escort_kirillka_to_club" or masha_task == "escort_kirillka_to_club":
+        ~ kirillka_location = "club"
+        { ignat_task == "escort_kirillka_to_club":
+            ~ ignat_location = 3
+        }
+        { masha_task == "escort_kirillka_to_club":
+            ~ masha_location = 3
+        }
     }
-}
+    -> process_shnekorotor_actions
 
-// --- Присмотр за Кирилкой (в доме 9) ---
-{ ignat_task == "babysit_kirillka" or masha_task == "babysit_kirillka":
-    { ignat_task == "babysit_kirillka":
-        ~ ignat_location = 9
+// ШАГ 6: СТЕЖОК ДЛЯ ТЕХНИКИ
+= process_shnekorotor_actions
+    // --- ОБРАБОТКА ЗАДАЧ ШНЕКОРОТОРА А ---
+    { shnekorotor_A_task == "expand_7_to_4":
+        ~ zone_4_accessible = true
+        ~ shnekorotor_A_status = "discharged"
+        ~ expansion_event_happened = true
     }
-    { masha_task == "babysit_kirillka":
-        ~ masha_location = 9
+    { shnekorotor_A_task == "expand_7_to_8":
+        ~ zone_8_accessible = true
+        ~ shnekorotor_A_status = "discharged"
+        ~ expansion_event_happened = true
     }
-}
-
-// --- Сопровождение Кирилки в Клуб (3) ---
-{ ignat_task == "escort_kirillka_to_club" or masha_task == "escort_kirillka_to_club":
-    ~ kirillka_location = "club"
-    { ignat_task == "escort_kirillka_to_club":
-        ~ ignat_location = 3
+    { shnekorotor_A_task == "expand_4_to_1":
+        ~ zone_1_accessible = true
+        ~ shnekorotor_A_status = "discharged"
+        ~ expansion_event_happened = true
     }
-    { masha_task == "escort_kirillka_to_club":
-        ~ masha_location = 3
+    { shnekorotor_A_task == "expand_4_to_5":
+        ~ zone_5_accessible = true
+        ~ shnekorotor_A_status = "discharged"
+        ~ expansion_event_happened = true
     }
-}
+    { shnekorotor_A_task == "expand_8_to_5":
+        ~ zone_5_accessible = true
+        ~ shnekorotor_A_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    { shnekorotor_A_task == "expand_8_to_9":
+        ~ zone_9_accessible = true
+        ~ shnekorotor_A_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    
+    // --- ОБРАБОТКА ЗАДАЧ ШНЕКОРОТОРА B ---
+    { shnekorotor_B_task == "expand_2_to_1":
+        ~ zone_1_accessible = true
+        ~ shnekorotor_B_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    { shnekorotor_B_task == "expand_2_to_3":
+        ~ zone_3_accessible = true
+        ~ shnekorotor_B_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    { shnekorotor_B_task == "expand_2_to_5":
+        ~ zone_5_accessible = true
+        ~ shnekorotor_B_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    { shnekorotor_B_task == "expand_1_to_4":
+        ~ zone_4_accessible = true
+        ~ shnekorotor_B_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    { shnekorotor_B_task == "expand_5_to_4":
+        ~ zone_4_accessible = true
+        ~ shnekorotor_B_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    { shnekorotor_B_task == "expand_5_to_6":
+        ~ zone_6_accessible = true
+        ~ shnekorotor_B_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    { shnekorotor_B_task == "expand_5_to_8":
+        ~ zone_8_accessible = true
+        ~ shnekorotor_B_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    { shnekorotor_B_task == "expand_3_to_6":
+        ~ zone_6_accessible = true
+        ~ shnekorotor_B_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    
+    // --- ОБРАБОТКА ЗАДАЧ ШНЕКОРОТОРА C ---
+    { shnekorotor_C_task == "expand_9_to_6":    
+        ~ zone_6_accessible = true
+        ~ shnekorotor_C_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    { shnekorotor_C_task == "expand_9_to_8":
+        ~ zone_8_accessible = true
+        ~ shnekorotor_C_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    { shnekorotor_C_task == "expand_6_to_3":
+        ~ zone_3_accessible = true
+        ~ shnekorotor_C_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    { shnekorotor_C_task == "expand_6_to_5":
+        ~ zone_5_accessible = true
+        ~ shnekorotor_C_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    { shnekorotor_C_task == "expand_8_to_5":
+        ~ zone_5_accessible = true
+        ~ shnekorotor_C_status = "discharged"
+        ~ expansion_event_happened = true
+    }
+    { shnekorotor_C_task == "expand_8_to_7":
+        ~ zone_7_accessible = true
+        ~ shnekorotor_C_status = "discharged"
+        ~ expansion_event_happened = true
+    }
 
-// === ОБРАБОТКА ДЕЙСТВИЙ ШНЕКОРОТОРОВ ===
-// Каждый шнекоротор обрабатывается в своем независимом блоке,
-// чтобы избежать синтаксических ошибок и сложной логики.
+    -> end_of_turn_phase
 
-// --- ОБРАБОТКА ЗАДАЧ ШНЕКОРОТОРА А ---
-{ shnekorotor_A_task == "expand_7_to_4":
-    ~ zone_4_accessible = true
-    ~ shnekorotor_A_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_A_task == "expand_7_to_8":
-    ~ zone_8_accessible = true
-    ~ shnekorotor_A_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_A_task == "expand_4_to_1":
-    ~ zone_1_accessible = true
-    ~ shnekorotor_A_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_A_task == "expand_4_to_5":
-    ~ zone_5_accessible = true
-    ~ shnekorotor_A_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_A_task == "expand_8_to_5":
-    ~ zone_5_accessible = true
-    ~ shnekorotor_A_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_A_task == "expand_8_to_9":
-    ~ zone_9_accessible = true
-    ~ shnekorotor_A_status = "discharged"
-    ~ expansion_event_happened = true
-}
-
-// --- ОБРАБОТКА ЗАДАЧ ШНЕКОРОТОРА B ---
-{ shnekorotor_B_task == "expand_2_to_1":
-    ~ zone_1_accessible = true
-    ~ shnekorotor_B_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_B_task == "expand_2_to_3":
-    ~ zone_3_accessible = true
-    ~ shnekorotor_B_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_B_task == "expand_2_to_5":
-    ~ zone_5_accessible = true
-    ~ shnekorotor_B_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_B_task == "expand_1_to_4":
-    ~ zone_4_accessible = true
-    ~ shnekorotor_B_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_B_task == "expand_5_to_4":
-    ~ zone_4_accessible = true
-    ~ shnekorotor_B_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_B_task == "expand_5_to_6":
-    ~ zone_6_accessible = true
-    ~ shnekorotor_B_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_B_task == "expand_5_to_8":
-    ~ zone_8_accessible = true
-    ~ shnekorotor_B_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_B_task == "expand_3_to_6":
-    ~ zone_6_accessible = true
-    ~ shnekorotor_B_status = "discharged"
-    ~ expansion_event_happened = true
-}
-
-// --- ОБРАБОТКА ЗАДАЧ ШНЕКОРОТОРА C ---
-{ shnekorotor_C_task == "expand_9_to_6":
-    ~ zone_6_accessible = true
-    ~ shnekorotor_C_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_C_task == "expand_9_to_8":
-    ~ zone_8_accessible = true
-    ~ shnekorotor_C_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_C_task == "expand_6_to_3":
-    ~ zone_3_accessible = true
-    ~ shnekorotor_C_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_C_task == "expand_6_to_5":
-    ~ zone_5_accessible = true
-    ~ shnekorotor_C_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_C_task == "expand_8_to_5":
-    ~ zone_5_accessible = true
-    ~ shnekorotor_C_status = "discharged"
-    ~ expansion_event_happened = true
-}
-{ shnekorotor_C_task == "expand_8_to_7":
-    ~ zone_7_accessible = true
-    ~ shnekorotor_C_status = "discharged"
-    ~ expansion_event_happened = true
-}
-
-// --- ВОЗВРАЩЕНИЕ ДОМОЙ В КОНЦЕ ХОДА ---
+// ШАГ 7: СТЕЖОК ЗАВЕРШЕНИЯ ХОДА
+= end_of_turn_phase
     ~ nadya_location = 7
     ~ artem_location = 2
     ~ ignat_location = 9
     ~ masha_location = 9
 
-    // --- ПРОВЕРКА УСЛОВИЙ ПРОИГРЫША (ПРАВИЛЬНОЕ МЕСТО) ---
     { heat_station_broken_turns >= 3:
         ~ game_over = true
         ~ game_result = "поражение_холод"
@@ -1082,7 +1078,6 @@ VAR shnekorotor_C_task = "none"
         ~ game_result = "поражение_травма"
     }
 
-    // --- ПЕРЕХОД К СЛЕДУЮЩЕМУ ХОДУ ---
     ~ current_turn = current_turn + 1
     -> main_game_loop
 
@@ -1259,6 +1254,7 @@ VAR shnekorotor_C_task = "none"
 
 = end_of_briefing
 + [Начнем]
+#Location: Карта
     -> main_game_loop
 
 === kirillka_hijack_dialogue ===
@@ -1505,5 +1501,6 @@ VAR shnekorotor_C_task = "none"
         // Для задач шнекороторов, которые имеют вид "expand_X_to_Y"
         ~ return "расчистка снежного завала."
 }
+
 
 
