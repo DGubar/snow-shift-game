@@ -820,6 +820,7 @@ VAR shnekorotor_C_task = "none"
         ~ parts_at_warehouse = parts_at_warehouse - 1
         ~ parts_at_heat_station = parts_at_heat_station + 1
         ~ artem_location = 8
+        ОТЛАДКА: Артем УСПЕШНО доставил деталь. parts_at_heat_station теперь = {parts_at_heat_station}.
     }
     { artem_task == "deliver_part_to_5" and parts_at_warehouse > 0:
         ~ parts_at_warehouse = parts_at_warehouse - 1
@@ -876,6 +877,10 @@ VAR shnekorotor_C_task = "none"
 
 // ШАГ 5: СТЕЖОК ДЛЯ ИНЖЕНЕРНЫХ РАБОТ И ЗАБОТЫ О КИРИЛКЕ
 = process_engineering_actions
+    ОТЛАДКА: Проверяю возможность починки Теплостанции.
+    ОТЛАДКА: -- Задача Игната: {ignat_task}
+    ОТЛАДКА: -- Статус станции: {heat_station_status}
+    ОТЛАДКА: -- Запчастей на месте: {parts_at_heat_station}
     // --- Починка Теплостанции (8) ---
     { (ignat_task == "fix_heat_station" or masha_task == "fix_heat_station") and heat_station_status == "broken" and parts_at_heat_station > 0:
         ~ heat_station_status = "ok"
@@ -1515,3 +1520,4 @@ VAR shnekorotor_C_task = "none"
         // Для задач шнекороторов, которые имеют вид "expand_X_to_Y"
         ~ return "расчистка снежного завала."
 }
+
