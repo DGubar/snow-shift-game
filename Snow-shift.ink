@@ -429,7 +429,7 @@ VAR shnekorotor_C_task = "none"
         ~ ignat_task = "babysit_kirillka"
         -> assignment_loop
         // НОВАЯ ЗАДАЧА: Отвести "своего" малыша в Клуб
-    + {kirillka_location == "home" and zone_3_accessible and zone_6_accessible}: [Отвести Кирилку в Клуб (3)]
+    + {kirillka_location == "home" and zone_3_accessible and zone_6_accessible} [Отвести Кирилку в Клуб (3)]
         ~ ignat_task = "escort_kirillka_to_club"
         -> assignment_loop
     + [Отмена] -> assignment_loop
@@ -1514,6 +1514,7 @@ VAR shnekorotor_C_task = "none"
         // Для задач шнекороторов, которые имеют вид "expand_X_to_Y"
         ~ return "расчистка снежного завала."
 }
+
 
 
 
