@@ -733,17 +733,10 @@ VAR shnekorotor_C_task = "none"
 }
 
 // =================================================================
-// ИСПРАВЛЕННЫЙ БЛОК ПЕРЕХОДА В КОНЦЕ ФАЗЫ
+// БЛОК ПЕРЕХОДА В КОНЦЕ ФАЗЫ
 // =================================================================
-{ (andreyka_activity == "naughty" or sonya_tonya_activity == "naughty" or kirillka_activity == "naughty") and not first_mischief_dialogue_seen:
-    // Если случилась первая шалость, И мы еще не видели диалог
-    ~ first_mischief_dialogue_seen = true // Ставим флаг
-    -> first_mischief_dialogue           // И уходим в сцену диалога
-- else:
-    // Во всех остальных случаях (шалости не было ИЛИ диалог уже видели)
-    ОТЛАДКА: Выход из malyshi_ai_phase. Переход к player_actions_phase.
-    -> player_actions_phase              // Просто переходим к следующей фазе
-}
+// После определения действий малышей, всегда переходим к фазе действий игрока.
+-> player_actions_phase
 
 // =================================================================
 // НОВАЯ, РАЗДЕЛЕННАЯ ФАЗА ДЕЙСТВИЙ ИГРОКА (СИНТАКСИС INK)
@@ -754,20 +747,21 @@ VAR shnekorotor_C_task = "none"
 ОТЛАДКА: Вход в player_actions_phase.
     -> process_special_triggers
 
-// ШАГ 2: СТЕЖОК ДЛЯ ОСОБЫХ ТРИГГЕРОВ-ДИАЛОГОВ
+// ШАГ 2.1: ПРОВЕРКА ПЕРВОГО ДИАЛОГА (КЛУБ)
 = process_special_triggers
     { (nadya_task == "deliver_part_to_3" or artem_task == "deliver_part_to_3") and (andreyka_location == "club" or sonya_tonya_location == "club" or kirillka_location == "club") and club_drone_status == "broken" and not club_drone_repair_authorized and not club_repair_dialogue_seen:
-        ~ parts_at_warehouse = parts_at_warehouse - 1
-        ~ parts_at_club = parts_at_club + 1
         -> scene_initiate_club_repair
+    - else:
+        -> check_greenhouse_trigger // Если диалога про Клуб не было, сразу проверяем Теплицу
     }
+
+// ШАГ 2.2: ПРОВЕРКА ВТОРОГО ДИАЛОГА (ТЕПЛИЦА)
+= check_greenhouse_trigger
     { (nadya_task == "deliver_part_to_4" or artem_task == "deliver_part_to_4") and kirillka_location == "greenhouse" and greenhouse_drone_status == "broken" and not greenhouse_drone_repair_authorized and not greenhouse_repair_dialogue_seen:
-        ~ parts_at_warehouse = parts_at_warehouse - 1
-        ~ parts_at_greenhouse = parts_at_greenhouse + 1
         -> scene_initiate_greenhouse_repair
+    - else:
+        -> process_logistics_actions // Если и этого диалога не было, идем дальше по плану
     }
-    
-    -> process_logistics_actions
 
 // ШАГ 3: СТЕЖОК ДЛЯ ЛОГИСТИКИ И СОПРОВОЖДЕНИЯ
 = process_logistics_actions
@@ -1405,14 +1399,14 @@ VAR shnekorotor_C_task = "none"
     Надя: Хорошо, Маша. Оставляю детали здесь. Пусть действуют, но под вашим с Игнатом присмотром! #Р
     ~ club_drone_repair_authorized = true
     ~ club_repair_dialogue_seen = true
-    -> player_actions_phase.process_logistics_actions
+    -> player_actions_phase.check_greenhouse_trigger
 
 + [Нет, это слишком опасно. Вернуть запчасть.]
     Надя: Не сейчас. Слишком большой риск. Нужно вернуть запчасть обратно на склад.
     ~ parts_at_club = parts_at_club - 1
     ~ parts_at_warehouse = parts_at_warehouse + 1
     ~ club_repair_dialogue_seen = true
-    -> player_actions_phase.process_logistics_actions
+    -> player_actions_phase.check_greenhouse_trigger
 
 === scene_initiate_greenhouse_repair ===
 #Location: Теплица
@@ -1520,4 +1514,5 @@ VAR shnekorotor_C_task = "none"
         // Для задач шнекороторов, которые имеют вид "expand_X_to_Y"
         ~ return "расчистка снежного завала."
 }
+
 
