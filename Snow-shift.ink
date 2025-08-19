@@ -361,7 +361,7 @@ VAR shnekorotor_C_task = "none"
         ~ nadya_task = "babysit_andreyka"
         -> assignment_loop
   // НОВАЯ ЗАДАЧА: Отвести "своего" малыша в Клуб
-    + { andreyka_location == "home" and zone_8_accessible and zone_6_accessible and zone_3_accessible }: [Отвести Андрейку в Клуб (3)]
+    + { andreyka_location == "home" and zone_8_accessible and zone_6_accessible and zone_3_accessible } [Отвести Андрейку в Клуб (3)]
         ~ nadya_task = "escort_andreyka_to_club"
         -> assignment_loop
     + [Отмена] -> assignment_loop
@@ -394,7 +394,7 @@ VAR shnekorotor_C_task = "none"
     + {sonya_tonya_location == "home"} [Присмотреть за Соней и Тоней (в доме 2)]
         ~ artem_task = "babysit_sonya_tonya"
         -> assignment_loop
-    + { sonya_tonya_location == "home" and zone_3_accessible }: [Отвести Соню и Тоню в Клуб (3)]
+    + { sonya_tonya_location == "home" and zone_3_accessible } [Отвести Соню и Тоню в Клуб (3)]
         ~ artem_task = "escort_sonya_tonya_to_club"
         -> assignment_loop
     + {greenhouse_status == "ok" and kirillka_greenhouse_option_unlocked and kirillka_location != "greenhouse" and ( (zone_4_accessible and zone_5_accessible and zone_6_accessible) or (zone_4_accessible and zone_8_accessible) or (zone_1_accessible and zone_6_accessible) )} [Отправить Кирилку в Теплицу (4)]
@@ -460,7 +460,7 @@ VAR shnekorotor_C_task = "none"
     + {kirillka_location == "home"} [Присмотреть за Кирилкой (в доме 9)]
         ~ masha_task = "babysit_kirillka"
         -> assignment_loop
-    + {kirillka_location == "home" and zone_3_accessible and zone_6_accessible}: [Отвести Кирилку в Клуб (3)]
+    + {kirillka_location == "home" and zone_3_accessible and zone_6_accessible} [Отвести Кирилку в Клуб (3)]
         ~ masha_task = "escort_kirillka_to_club"
         -> assignment_loop
     + [Отмена] -> assignment_loop
@@ -1514,5 +1514,6 @@ VAR shnekorotor_C_task = "none"
         // Для задач шнекороторов, которые имеют вид "expand_X_to_Y"
         ~ return "расчистка снежного завала."
 }
+
 
 
