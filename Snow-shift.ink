@@ -407,7 +407,7 @@ VAR shnekorotor_C_task = "none"
     + {shnekorotor_B_status == "broken"} [Починить Шнекоротор B (на базе 2) Требуется запчасть!]
         ~ ignat_task = "fix_shnek_B"
         -> assignment_loop
-    + {shnekorotor_C_status == "broken"} [Починить Шнекоротор C (на базе 9)]Требуется запчасть!]
+    + {shnekorotor_C_status == "broken"} [Починить Шнекоротор C (на базе 9) Требуется запчасть!]
         ~ ignat_task = "fix_shnek_C"
         -> assignment_loop
     + {kirillka_location == "home"} [Присмотреть за Кирилкой (в доме 9)]
@@ -1489,6 +1489,7 @@ VAR shnekorotor_C_task = "none"
         // Для задач шнекороторов, которые имеют вид "expand_X_to_Y"
         ~ return "расчистка снежного завала."
 }
+
 
 
 
