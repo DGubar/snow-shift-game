@@ -532,8 +532,8 @@ VAR shnekorotor_C_task = "none"
 // === malyshi_ai_phase ===
 // Это ОТДЕЛЬНАЯ, скрытая комната для логики малышей.
 === malyshi_ai_phase ===
-Надя кидает взгляд на мониторы, напоминая себе: нельзя забывать о малышах, ведь это главная ответственность всех подростков!
-+ [Продолжить]
+Если за малышами не присматривать, они могут натворить дел!
++ [Ух, хоть бы пронесло!..]
 // =================================================================
 // СЕКЦИЯ 1: ОПРЕДЕЛЕНИЕ СОСТОЯНИЯ КАЖДОГО МАЛЫША
 // =================================================================
@@ -607,44 +607,45 @@ VAR shnekorotor_C_task = "none"
 }
 
 // --- "Шаловливые" действия ---
-
-// УСИЛЕННАЯ Логика Андрейки (ломает ОДНУ вещь за ход, но с приоритетом)
+// УСИЛЕННАЯ и ИСПРАВЛЕННАЯ Логика Андрейки
 { andreyka_activity == "naughty":
-    // --- ПРИОРИТЕТ 1: Сломать уже починенную Теплостанцию ---
-    { heat_station_status == "ok":
+    ~ temp sabotage_done_this_turn = false
+    
+    // Приоритет 1: Теплостанция
+    { not sabotage_done_this_turn and heat_station_status == "ok":
         ~ heat_station_status = "broken"
         ~ andreyka_last_sabotage = "heat_station"
-    
-    // --- ПРИОРИТЕТ 2: Сломать уже починенный Медпункт ---
-    - else:
-        { med_point_status == "ok":
-            ~ med_point_status = "broken"
-            ~ andreyka_last_sabotage = "med_point"
-        
-        // --- ПРИОРИТЕТ 3: Сломать уже починенную Теплицу ---
-        - else:
-            { greenhouse_status == "ok":
-                ~ greenhouse_status = "broken"
-                ~ andreyka_last_sabotage = "greenhouse"
-            
-            // --- ПРИОРИТЕТ 4: Если ничего важного не починено, ломает шнекороторы ---
-            - else:
-                { shnekorotor_A_status == "charged":
-                    ~ shnekorotor_A_status = "broken"
-                    ~ andreyka_last_sabotage = "shnek_A"
-                - else:
-                    { shnekorotor_B_status == "charged":
-                        ~ shnekorotor_B_status = "broken"
-                        ~ andreyka_last_sabotage = "shnek_B"
-                    - else:
-                        { shnekorotor_C_status == "charged":
-                            ~ shnekorotor_C_status = "broken"
-                            ~ andreyka_last_sabotage = "shnek_C"
-                        }
-                    }
-                }
-            }
-        }
+        ~ sabotage_done_this_turn = true
+    }
+    // Приоритет 2: Медпункт
+    { not sabotage_done_this_turn and med_point_status == "ok":
+        ~ med_point_status = "broken"
+        ~ andreyka_last_sabotage = "med_point"
+        ~ sabotage_done_this_turn = true
+    }
+    // Приоритет 3: Теплица
+    { not sabotage_done_this_turn and greenhouse_status == "ok":
+        ~ greenhouse_status = "broken"
+        ~ andreyka_last_sabotage = "greenhouse"
+        ~ sabotage_done_this_turn = true
+    }
+    // Приоритет 4.1: Шнекоротор C
+    { not sabotage_done_this_turn and shnekorotor_C_status == "charged":
+        ~ shnekorotor_C_status = "broken"
+        ~ andreyka_last_sabotage = "shnek_C"
+        ~ sabotage_done_this_turn = true
+    }
+    // Приоритет 4.2: Шнекоротор B
+    { not sabotage_done_this_turn and shnekorotor_B_status == "charged":
+        ~ shnekorotor_B_status = "broken"
+        ~ andreyka_last_sabotage = "shnek_B"
+        ~ sabotage_done_this_turn = true
+    }
+    // Приоритет 4.3: Шнекоротор А
+    { not sabotage_done_this_turn and shnekorotor_A_status == "charged":
+        ~ shnekorotor_A_status = "broken"
+        ~ andreyka_last_sabotage = "shnek_A"
+        ~ sabotage_done_this_turn = true
     }
 }
 
@@ -741,7 +742,7 @@ VAR shnekorotor_C_task = "none"
 
 // ШАГ 1: УЗЕЛ-ДИСПЕТЧЕР
 === player_actions_phase ===
-Теперь все в поселке заняты, можно, наконец, заварить чай.
+Теперь все в поселке заняты, и можно, наконец, глотнуть горячего чая.
     -> process_special_triggers
 
 // ШАГ 2.1: ПРОВЕРКА ПЕРВОГО ДИАЛОГА (КЛУБ)
@@ -1080,8 +1081,8 @@ VAR shnekorotor_C_task = "none"
 
 // ШАГ 7: СТЕЖОК ЗАВЕРШЕНИЯ ХОДА
 = end_of_turn_phase
-Час подходит к концу. Пора подвести итог и спланировать следующие шаги!
-+ [Надя снова склонилась над мониторами]
+Вот и прошел час вахты. Что ждет Надю и ее друзей дальше?..
++ [Надя склонилась над мониторами]
     ~ nadya_location = 7
     ~ artem_location = 2
     ~ ignat_location = 9
@@ -1515,5 +1516,6 @@ VAR shnekorotor_C_task = "none"
         // Для задач шнекороторов, которые имеют вид "expand_X_to_Y"
         ~ return "расчистка снежного завала."
 }
+
 
 
