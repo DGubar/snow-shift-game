@@ -138,7 +138,6 @@ VAR shnekorotor_C_task = "none"
 // === main_game_loop ===
 // Этот узел (knot) - сердце игры. Он запускается в начале каждого хода.
 === main_game_loop ===
-ОТЛАДКА: Начало нового хода {current_turn}. Вход в main_game_loop.
 // --- ПРОВЕРКА СОБЫТИЙ В НАЧАЛЕ ХОДА ---
 // Проверка диалога об открытии Клуба
 { zone_3_accessible and not club_unlocked_dialogue_seen:
@@ -199,19 +198,15 @@ VAR shnekorotor_C_task = "none"
     { shnekorotor_C_status == "discharged" and zone_1_accessible and ( (zone_8_accessible and zone_5_accessible and zone_2_accessible) or (zone_6_accessible and zone_5_accessible and zone_2_accessible) or (zone_6_accessible and zone_3_accessible and zone_2_accessible) ) :
         ~ shnekorotor_C_status = "charged"
     }
-    
     // После выполнения всех утренних дел, переходим к отчету.
     -> report_phase
     
 === report_phase ===
-ОТЛАДКА: Вход в report_phase.
 // --- ЭТАП 1.1: ПРОВЕРКА ПЕРВОЙ ШАЛОСТИ ---
 { (andreyka_activity == "naughty" or sonya_tonya_activity == "naughty" or kirillka_activity == "naughty") and not first_mischief_dialogue_seen:
-    ОТЛАДКА: Условие первой шалости СРАБОТАЛО. Переход к диалогу.
     ~ first_mischief_dialogue_seen = true
     -> first_mischief_dialogue
 - else:
-    ОТЛАДКА: Условие первой шалости НЕ сработало. Переход к проверке завала.
     -> check_expansion_event // Переходим к следующему шагу отчета
 }
 = check_expansion_event
@@ -309,6 +304,7 @@ VAR shnekorotor_C_task = "none"
 
 // Это "якорь" (stitch), к которому мы будем возвращаться.
 = assignment_loop
+    #Location: Карта
     # clear
     Задачи на этот час: <>
     - Надя Следопытова: {task_to_russian(nadya_task)} <>
@@ -536,7 +532,8 @@ VAR shnekorotor_C_task = "none"
 // === malyshi_ai_phase ===
 // Это ОТДЕЛЬНАЯ, скрытая комната для логики малышей.
 === malyshi_ai_phase ===
-ОТЛАДКА: Вход в malyshi_ai_phase.
+Надя кидает взгляд на мониторы, напоминая себе: нельзя забывать о малышах, ведь это главная ответственность всех подростков!
++ [Продолжить]
 // =================================================================
 // СЕКЦИЯ 1: ОПРЕДЕЛЕНИЕ СОСТОЯНИЯ КАЖДОГО МАЛЫША
 // =================================================================
@@ -744,7 +741,7 @@ VAR shnekorotor_C_task = "none"
 
 // ШАГ 1: УЗЕЛ-ДИСПЕТЧЕР
 === player_actions_phase ===
-ОТЛАДКА: Вход в player_actions_phase.
+Теперь все в поселке заняты, можно, наконец, заварить чай.
     -> process_special_triggers
 
 // ШАГ 2.1: ПРОВЕРКА ПЕРВОГО ДИАЛОГА (КЛУБ)
@@ -814,7 +811,6 @@ VAR shnekorotor_C_task = "none"
         ~ parts_at_warehouse = parts_at_warehouse - 1
         ~ parts_at_heat_station = parts_at_heat_station + 1
         ~ artem_location = 8
-        ОТЛАДКА: Артем УСПЕШНО доставил деталь. parts_at_heat_station теперь = {parts_at_heat_station}.
     }
     { artem_task == "deliver_part_to_5" and parts_at_warehouse > 0:
         ~ parts_at_warehouse = parts_at_warehouse - 1
@@ -871,10 +867,6 @@ VAR shnekorotor_C_task = "none"
 
 // ШАГ 5: СТЕЖОК ДЛЯ ИНЖЕНЕРНЫХ РАБОТ И ЗАБОТЫ О КИРИЛКЕ
 = process_engineering_actions
-    ОТЛАДКА: Проверяю возможность починки Теплостанции.
-    ОТЛАДКА: -- Задача Игната: {ignat_task}
-    ОТЛАДКА: -- Статус станции: {heat_station_status}
-    ОТЛАДКА: -- Запчастей на месте: {parts_at_heat_station}
     // --- Починка Теплостанции (8) ---
     { (ignat_task == "fix_heat_station" or masha_task == "fix_heat_station") and heat_station_status == "broken" and parts_at_heat_station > 0:
         ~ heat_station_status = "ok"
@@ -1088,7 +1080,8 @@ VAR shnekorotor_C_task = "none"
 
 // ШАГ 7: СТЕЖОК ЗАВЕРШЕНИЯ ХОДА
 = end_of_turn_phase
-ОТЛАДКА: Вход в end_of_turn_phase.
+Час подходит к концу. Пора подвести итог и спланировать следующие шаги!
++ [Надя снова склонилась над мониторами].
     ~ nadya_location = 7
     ~ artem_location = 2
     ~ ignat_location = 9
@@ -1516,10 +1509,3 @@ VAR shnekorotor_C_task = "none"
         // Для задач шнекороторов, которые имеют вид "expand_X_to_Y"
         ~ return "расчистка снежного завала."
 }
-
-
-
-
-
-
-
