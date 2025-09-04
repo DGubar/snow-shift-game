@@ -102,7 +102,7 @@ VAR greenhouse_drone_status = "broken"
 // -----------------------------------------------------------------
 // 8. ПЕРЕМЕННЫЕ РЕСУРСОВ (ЗАПЧАСТИ)
 // -----------------------------------------------------------------
-VAR parts_at_warehouse = 7  // Сколько всего запчастей на складе (6)
+VAR parts_at_warehouse = 6  // Сколько всего запчастей на складе (6)
 // Запчасти, доставленные на место для ремонта
 VAR parts_at_club = 0 // Локация 3
 VAR parts_at_greenhouse = 0 // Локация 4
@@ -461,73 +461,57 @@ VAR shnekorotor_C_task = "none"
         -> assignment_loop
     + [Отмена] -> assignment_loop
     
-= assign_shnek_A // База 7. Ответственность: северный и центральный регионы.
-    
-    // --- Задачи с его родной базы (7) ---
-    + {zone_7_accessible and not zone_4_accessible} [Расширить доступ от Дома (7) к Теплице (4)] -> expand_zone("A", 7, 4)
-    + {zone_7_accessible and not zone_8_accessible} [Расширить доступ от Дома (7) к Теплостанции (8)] -> expand_zone("A", 7, 8)
-
-    // --- Задачи с новой границы: Теплица (4) ---
-    // Эти кнопки появятся, только когда зона 4 станет доступной.
-    + {zone_4_accessible and not zone_1_accessible} [Расширить доступ от Теплицы (4) к Станции Зарядки (1)] -> expand_zone("A", 4, 1)
-    + {zone_4_accessible and not zone_5_accessible} [Расширить доступ от Теплицы (4) к Медпункту (5)] -> expand_zone("A", 4, 5)
-
-    // --- Задачи с новой границы: Теплостанция (8) ---
-    // Эти кнопки появятся, только когда зона 8 станет доступной.
-    + {zone_8_accessible and not zone_5_accessible} [Расширить доступ от Теплостанции (8) к Медпункту (5)] -> expand_zone("A", 8, 5)
-    + {zone_8_accessible and not zone_9_accessible} [Расширить доступ от Теплостанции (8) к Дому Гладковых (9)] -> expand_zone("A", 8, 9)
-    + [Отмена] -> assignment_loop
+= assign_shnek_A // База 7.
+    // Условие появления: зона-цель недоступна, НО хотя бы одна соседняя зона УЖЕ доступна.
+    + {not zone_4_accessible and zone_7_accessible} [Расчистить доступ к Теплице (4)]
+        ~ shnekorotor_A_task = "clear_zone_4"
+        -> assignment_loop
+    + {not zone_8_accessible and zone_7_accessible} [Расчистить доступ к Теплостанции (8)]
+        ~ shnekorotor_A_task = "clear_zone_8"
+        -> assignment_loop
+    + {not zone_5_accessible and (zone_4_accessible or zone_8_accessible)} [Расчистить доступ к Медпункту (5)]
+        ~ shnekorotor_A_task = "clear_zone_5"
+        -> assignment_loop
+    + [Отмена]
+        -> assignment_loop
 
 = assign_shnek_B // База 2
-    // --- Задачи с его родной базы (2) ---
-    + {zone_2_accessible and not zone_1_accessible} [Расширить доступ от Дома (2) к Станции Зарядки (1)] -> expand_zone("B", 2, 1)
-    + {zone_2_accessible and not zone_3_accessible} [Расширить доступ от Дома (2) к Клубу (3)] -> expand_zone("B", 2, 3)
-    + {zone_2_accessible and not zone_5_accessible} [Расширить доступ от Дома (2) к Медпункту (5)] -> expand_zone("B", 2, 5)
+    + {not zone_1_accessible and zone_2_accessible} [Расчистить доступ к Станции Зарядки (1)]
+        ~ shnekorotor_B_task = "clear_zone_1"
+        -> assignment_loop
+    + {not zone_3_accessible and zone_2_accessible} [Расчистить доступ к Клубу (3)]
+        ~ shnekorotor_B_task = "clear_zone_3"
+        -> assignment_loop
+    + {not zone_5_accessible and (zone_2_accessible or zone_8_accessible or zone_4_accessible or zone_6_accessible)} [Расчистить доступ к Медпункту (5)]
+        ~ shnekorotor_B_task = "clear_zone_5"
+        -> assignment_loop
+    + {not zone_4_accessible and (zone_1_accessible or zone_5_accessible)} [Расчистить доступ к Теплице (4)]
+        ~ shnekorotor_B_task = "clear_zone_4"
+        -> assignment_loop
+    + {not zone_6_accessible and (zone_3_accessible or zone_5_accessible)} [Расчистить доступ к Складу (6)]
+        ~ shnekorotor_B_task = "clear_zone_6"
+        -> assignment_loop
+    + {not zone_8_accessible and zone_5_accessible} [Расчистить доступ к Теплостанции (8)]
+        ~ shnekorotor_B_task = "clear_zone_8"
+        -> assignment_loop
+    + [Отмена]
+        -> assignment_loop
 
-    // --- Задачи с новой границы: Станция зарядки (1) ---
-    // Эти кнопки появятся, ТОЛЬКО КОГДА зона 1 станет доступной
-    + {zone_1_accessible and not zone_4_accessible} [Расширить доступ от Станции зарядки (1) к Теплице (4)] -> expand_zone("B", 1, 4)
-    
-    // --- Задачи с новой границы: Медпункт (5) ---
-    // Эти кнопки появятся, ТОЛЬКО КОГДА зона 5 станет доступной
-    + {zone_5_accessible and not zone_4_accessible} [Расширить доступ от Медпункта (5) к Теплице (4)] -> expand_zone("B", 5, 4)
-    + {zone_5_accessible and not zone_6_accessible} [Расширить доступ от Медпункта (5) к Складу (6)] -> expand_zone("B", 5, 6)
-    + {zone_5_accessible and not zone_8_accessible} [Расширить доступ от Медпункта (5) к Теплостанции (8)] -> expand_zone("B", 5, 8)
-
-    // --- Задачи с новой границы: Клуб (3) ---
-    + {zone_3_accessible and not zone_6_accessible} [Расширить доступ от Клуба (3) к Складу (6)] -> expand_zone("B", 3, 6)
-    + [Отмена] -> assignment_loop
-
-= assign_shnek_C // База 9. Ответственность: южный и восточный регионы.
-    // --- Задачи с его родной базы (9) ---
-    + {zone_9_accessible and not zone_6_accessible} [Расширить доступ от Дома (9) к Складу (6)] -> expand_zone("C", 9, 6)
-    + {zone_9_accessible and not zone_8_accessible} [Расширить доступ от Дома (9) к Теплостанции (8)] -> expand_zone("C", 9, 8)
-
-    // --- Задачи с новой границы: Склад (6) ---
-    // Эти кнопки появятся, только когда зона 6 станет доступной.
-    + {zone_6_accessible and not zone_3_accessible} [Расширить доступ от Склада (6) к Клубу (3)] -> expand_zone("C", 6, 3)
-    + {zone_6_accessible and not zone_5_accessible} [Расширить доступ от Склада (6) к Медпункту (5)] -> expand_zone("C", 6, 5)
-
-    // --- Задачи с новой границы: Теплостанция (8) ---
-    // Эти кнопки появятся, только когда зона 8 станет доступной.
-    + {zone_8_accessible and not zone_5_accessible} [Расширить доступ от Теплостанции (8) к Медпункту (5)] -> expand_zone("C", 8, 5)
-    + {zone_8_accessible and not zone_7_accessible} [Расширить доступ от Теплостанции (8) к Дому Следопытовых (7)] -> expand_zone("C", 8, 7)
-    + [Отмена] -> assignment_loop
-
-// === УЗЕЛ-ПОМОЩНИК ДЛЯ НАЗНАЧЕНИЯ ЗАДАЧИ РАСШИРЕНИЯ ===
-// Он просто назначает задачу, чтобы не дублировать код
-
-= expand_zone(shnek, from, to)
-    { shnek == "A": 
-        ~ shnekorotor_A_task = "expand_{from}_to_{to}" 
-    }
-    { shnek == "B": 
-        ~ shnekorotor_B_task = "expand_{from}_to_{to}" 
-    }
-    { shnek == "C": 
-        ~ shnekorotor_C_task = "expand_{from}_to_{to}" 
-    }
-    -> assignment_loop
+= assign_shnek_C // База 9.
+    + {not zone_6_accessible and zone_9_accessible} [Расчистить доступ к Складу (6)]
+        ~ shnekorotor_C_task = "clear_zone_6"
+        -> assignment_loop
+    + {not zone_8_accessible and zone_9_accessible} [Расчистить доступ к Теплостанции (8)]
+        ~ shnekorotor_C_task = "clear_zone_8"
+        -> assignment_loop
+    + {not zone_3_accessible and zone_6_accessible} [Расчистить доступ к Клубу (3)]
+        ~ shnekorotor_C_task = "clear_zone_3"
+        -> assignment_loop
+    + {not zone_5_accessible and (zone_6_accessible or zone_8_accessible)} [Расчистить доступ к Медпункту (5)]
+        ~ shnekorotor_C_task = "clear_zone_5"
+        -> assignment_loop
+    + [Отмена]
+        -> assignment_loop
 
 // === malyshi_ai_phase ===
 // Это ОТДЕЛЬНАЯ, скрытая комната для логики малышей.
@@ -969,115 +953,89 @@ VAR shnekorotor_C_task = "none"
     }
     -> process_shnekorotor_actions
 
-// ШАГ 6: СТЕЖОК ДЛЯ ТЕХНИКИ
+// ШАГ 6: СТЕЖОК ДЛЯ ТЕХНИКИ (СИНТАКСИЧЕСКИ ИСПРАВЛЕННАЯ ВЕРСИЯ)
 = process_shnekorotor_actions
-    // --- ОБРАБОТКА ЗАДАЧ ШНЕКОРОТОРА А ---
-    { shnekorotor_A_task == "expand_7_to_4":
-        ~ zone_4_accessible = true
-        ~ shnekorotor_A_status = "discharged"
-        ~ expansion_event_happened = true
-    }
-    { shnekorotor_A_task == "expand_7_to_8":
-        ~ zone_8_accessible = true
-        ~ shnekorotor_A_status = "discharged"
-        ~ expansion_event_happened = true
-    }
-    { shnekorotor_A_task == "expand_4_to_1":
+    
+    // Расчистка Зоны 1 (Станция Зарядки)
+    { (shnekorotor_A_task == "clear_zone_1" or shnekorotor_B_task == "clear_zone_1") and shnekorotor_A_status != "broken" and shnekorotor_B_status != "broken" :
         ~ zone_1_accessible = true
-        ~ shnekorotor_A_status = "discharged"
         ~ expansion_event_happened = true
-    }
-    { shnekorotor_A_task == "expand_4_to_5":
-        ~ zone_5_accessible = true
-        ~ shnekorotor_A_status = "discharged"
-        ~ expansion_event_happened = true
-    }
-    { shnekorotor_A_task == "expand_8_to_5":
-        ~ zone_5_accessible = true
-        ~ shnekorotor_A_status = "discharged"
-        ~ expansion_event_happened = true
-    }
-    { shnekorotor_A_task == "expand_8_to_9":
-        ~ zone_9_accessible = true
-        ~ shnekorotor_A_status = "discharged"
-        ~ expansion_event_happened = true
+        { shnekorotor_A_task == "clear_zone_1": 
+            ~ shnekorotor_A_status = "discharged" 
+        }
+        { shnekorotor_B_task == "clear_zone_1": 
+            ~ shnekorotor_B_status = "discharged" 
+        }
     }
     
-    // --- ОБРАБОТКА ЗАДАЧ ШНЕКОРОТОРА B ---
-    { shnekorotor_B_task == "expand_2_to_1":
-        ~ zone_1_accessible = true
-        ~ shnekorotor_B_status = "discharged"
-        ~ expansion_event_happened = true
-    }
-    { shnekorotor_B_task == "expand_2_to_3":
+    // Расчистка Зоны 3 (Клуб)
+    { (shnekorotor_B_task == "clear_zone_3" or shnekorotor_C_task == "clear_zone_3") and shnekorotor_B_status != "broken" and shnekorotor_C_status != "broken" :
         ~ zone_3_accessible = true
-        ~ shnekorotor_B_status = "discharged"
         ~ expansion_event_happened = true
+        { shnekorotor_B_task == "clear_zone_3": 
+            ~ shnekorotor_B_status = "discharged" 
+        }
+        { shnekorotor_C_task == "clear_zone_3": 
+            ~ shnekorotor_C_status = "discharged" 
+        }
     }
-    { shnekorotor_B_task == "expand_2_to_5":
+
+    // Расчистка Зоны 4 (Теплица)
+    { (shnekorotor_A_task == "clear_zone_4" or shnekorotor_B_task == "clear_zone_4") and shnekorotor_A_status != "broken" and shnekorotor_B_status != "broken" :
+        ~ zone_4_accessible = true
+        ~ expansion_event_happened = true
+        { shnekorotor_A_task == "clear_zone_4": 
+            ~ shnekorotor_A_status = "discharged" 
+        }
+        { shnekorotor_B_task == "clear_zone_4": 
+            ~ shnekorotor_B_status = "discharged" 
+        }
+    }
+
+    // Расчистка Зоны 5 (Медпункт)
+    { (shnekorotor_A_task == "clear_zone_5" or shnekorotor_B_task == "clear_zone_5" or shnekorotor_C_task == "clear_zone_5") and shnekorotor_A_status != "broken" and shnekorotor_B_status != "broken" and shnekorotor_C_status != "broken" :
         ~ zone_5_accessible = true
-        ~ shnekorotor_B_status = "discharged"
         ~ expansion_event_happened = true
-    }
-    { shnekorotor_B_task == "expand_1_to_4":
-        ~ zone_4_accessible = true
-        ~ shnekorotor_B_status = "discharged"
-        ~ expansion_event_happened = true
-    }
-    { shnekorotor_B_task == "expand_5_to_4":
-        ~ zone_4_accessible = true
-        ~ shnekorotor_B_status = "discharged"
-        ~ expansion_event_happened = true
-    }
-    { shnekorotor_B_task == "expand_5_to_6":
-        ~ zone_6_accessible = true
-        ~ shnekorotor_B_status = "discharged"
-        ~ expansion_event_happened = true
-    }
-    { shnekorotor_B_task == "expand_5_to_8":
-        ~ zone_8_accessible = true
-        ~ shnekorotor_B_status = "discharged"
-        ~ expansion_event_happened = true
-    }
-    { shnekorotor_B_task == "expand_3_to_6":
-        ~ zone_6_accessible = true
-        ~ shnekorotor_B_status = "discharged"
-        ~ expansion_event_happened = true
+        { shnekorotor_A_task == "clear_zone_5": 
+            ~ shnekorotor_A_status = "discharged" 
+        }
+        { shnekorotor_B_task == "clear_zone_5": 
+            ~ shnekorotor_B_status = "discharged" 
+        }
+        { shnekorotor_C_task == "clear_zone_5": 
+            ~ shnekorotor_C_status = "discharged" 
+        }
     }
     
-    // --- ОБРАБОТКА ЗАДАЧ ШНЕКОРОТОРА C ---
-    { shnekorotor_C_task == "expand_9_to_6":    
+    // Расчистка Зоны 6 (Склад)
+    { (shnekorotor_B_task == "clear_zone_6" or shnekorotor_C_task == "clear_zone_6") and shnekorotor_B_status != "broken" and shnekorotor_C_status != "broken" :
         ~ zone_6_accessible = true
-        ~ shnekorotor_C_status = "discharged"
         ~ expansion_event_happened = true
+        { shnekorotor_B_task == "clear_zone_6": 
+            ~ shnekorotor_B_status = "discharged" 
+        }
+        { shnekorotor_C_task == "clear_zone_6": 
+            ~ shnekorotor_C_status = "discharged" 
+        }
     }
-    { shnekorotor_C_task == "expand_9_to_8":
+
+    // Расчистка Зоны 8 (Теплостанция)
+    { (shnekorotor_A_task == "clear_zone_8" or shnekorotor_B_task == "clear_zone_8" or shnekorotor_C_task == "clear_zone_8") and shnekorotor_A_status != "broken" and shnekorotor_B_status != "broken" and shnekorotor_C_status != "broken" :
         ~ zone_8_accessible = true
-        ~ shnekorotor_C_status = "discharged"
         ~ expansion_event_happened = true
-    }
-    { shnekorotor_C_task == "expand_6_to_3":
-        ~ zone_3_accessible = true
-        ~ shnekorotor_C_status = "discharged"
-        ~ expansion_event_happened = true
-    }
-    { shnekorotor_C_task == "expand_6_to_5":
-        ~ zone_5_accessible = true
-        ~ shnekorotor_C_status = "discharged"
-        ~ expansion_event_happened = true
-    }
-    { shnekorotor_C_task == "expand_8_to_5":
-        ~ zone_5_accessible = true
-        ~ shnekorotor_C_status = "discharged"
-        ~ expansion_event_happened = true
-    }
-    { shnekorotor_C_task == "expand_8_to_7":
-        ~ zone_7_accessible = true
-        ~ shnekorotor_C_status = "discharged"
-        ~ expansion_event_happened = true
+        { shnekorotor_A_task == "clear_zone_8": 
+            ~ shnekorotor_A_status = "discharged" 
+        }
+        { shnekorotor_B_task == "clear_zone_8": 
+            ~ shnekorotor_B_status = "discharged" 
+        }
+        { shnekorotor_C_task == "clear_zone_8": 
+            ~ shnekorotor_C_status = "discharged" 
+        }
     }
 
     -> end_of_turn_phase
+
 
 // ШАГ 7: СТЕЖОК ЗАВЕРШЕНИЯ ХОДА
 = end_of_turn_phase
@@ -1212,7 +1170,7 @@ VAR shnekorotor_C_task = "none"
 
 (Диспетчерская поселка. На столе рядом с экранами терминалов лежит значок Первопроходца.)
 
-Пока взрослые спят, подростки несут "Снежную вахту" — поочередно дежурят в поселковом кризис-центре, следя за системами.
+Пока взрослые спят, подростки несут "снежную вахту" — поочередно дежурят в поселковом кризис-центре, следя за системами.
 
 Сегодня очередь Нади. Для нее это не просто дежурство. Это шанс доказать, что она достойна своей Традиции. Шанс показать, что на нее можно положиться в самой сложной ситуации.
 
@@ -1281,9 +1239,9 @@ VAR shnekorotor_C_task = "none"
 === kirillka_hijack_dialogue ===
 #Location: Кризисный центр красный
 # clear
-Надя: (просматривает отчет с камер наблюдения. Внезапно она останавливает запись и увеличивает изображение. Глубокие следы от гусениц шнекоротора уводят от Дома Гладковых, но по очень странной траектории) Так, я не поняла. Кто-то брал шнекоротор 'C' без моего ведома? Игнат, Маша, доложите обстановку! #З
+Надя: (просматривает отчет с камер наблюдения. Внезапно она останавливает запись и увеличивает изображение. Глубокие следы от гусениц шнекоротора уводят от Дома Гладковых, но по очень странной траектории) Так, я не поняла. Кто-то брал шнекоротор без моего ведома? Игнат, Маша, доложите обстановку! #З
 
-Игнат: (слышен тяжелый вздох Игната) Это Кирилка. Опять. Мы его отвлекли, но он все-таки рванул к Теплице, а мы прошляпили. Говорит, что его 'экспериментальные морозоустойчивые апельсины' без него погибнут. #П
+Игнат: (слышен скрип зубов Игната) Это Кирилка. Рванул к Теплице, а мы прошляпили. Говорит, что его 'экспериментальные морозоустойчивые апельсины' без него погибнут #З
 
 Кирилка: Ну Надя! Надя, скажи им, там же мои апельсинчики! Маша-а, Игна-а-а-т! Ну пустите же! #З
 
@@ -1370,19 +1328,19 @@ VAR shnekorotor_C_task = "none"
     
     - else:
         { kirillka_activity == "naughty": // <-- ДОБАВЛЕНО ЯВНОЕ УСЛОВИЕ
-            Игнат: Надя, он это сделал! Кирилка угнал шнекоротор! Следы ведут в сторону Теплицы. Говорит, что-то про свои апельсины! #У
+            Игнат: Надя, Кирилка не просто угнал шнекоротор, он его поломал! У нас тут и так дел, а он рискует техникой ради каких-то своих 'апельсинчиков'! #У
         }
     }
 }
 
-Надя: (на секунду прикрывает глаза лапой) Поняла... Я боялась, что до этого дойдет. Сидеть без дела — не для них. Они найдут себе приключения, и добром это не кончится. #П
+Надя: (на секунду прикрывает глаза лапой) Поняла... Я боялась, что до этого дойдет. Сидеть без дела — не для наших малышей. Они найдут себе приключения, и добром это не кончится. #П
 
 + [Нужно за ними постоянно следить!]
     Надя: Верно. Это отнимет у нас кучу времени, но безопасность важнее. Я могу потратить свое время, чтобы присмотреть за Андрейкой. Артем, ты за Соней и Тоней. Игнат, Маша, Кирилка на вас. Это должно их занять на какое-то время.
     -> continue_game_after_dialogue
 
 + [Может, есть способ получше? Изолировать их?]
-    Маша: Есть идея. Если мы сможем расчистить завал к Клубу, его можно использовать как большую игровую комнату. Там полно интересных конструкторов и голо-симуляторов. Им будет чем заняться, и они будут в безопасности. #Р
+    Маша: Есть идея. Если мы сможем расчистить завал к Клубу, его можно использовать как большую игровую комнату. Там полно интересных конструкторов и голографических симуляторов. Им будет чем заняться, и они будут в безопасности. #Р
     Надя: Отличная мысль! Это становится приоритетной задачей. Но пока мы до него не добрались, придется кому-то из нас тратить время на присмотр. #Р
     -> continue_game_after_dialogue
 
@@ -1512,10 +1470,20 @@ VAR shnekorotor_C_task = "none"
         ~ return "ремонт Шнекоротора B (2)."
     - task_name == "fix_shnek_C":
         ~ return "ремонт Шнекоротора C (9)."
+    - task_name == "clear_zone_1":
+        ~ return "расчистка доступа к Станции Зарядки (1)."
+    - task_name == "clear_zone_3":
+        ~ return "расчистка доступа к Клубу (3)."
+    - task_name == "clear_zone_4":
+        ~ return "расчистка доступа к Теплице (4)."
+    - task_name == "clear_zone_5":
+        ~ return "расчистка доступа к Медпункту (5)."
+    - task_name == "clear_zone_6":
+        ~ return "расчистка доступа к Складу (6)."
+    - task_name == "clear_zone_8":
+        ~ return "расчистка доступа к Теплостанции (8)."
     - else:
-        // Для задач шнекороторов, которые имеют вид "expand_X_to_Y"
-        ~ return "расчистка снежного завала."
+        // Этот блок теперь не должен использоваться, но мы оставим его
+        // на случай появления непредвиденных задач.
+        ~ return "выполнение особой задачи."
 }
-
-
-
