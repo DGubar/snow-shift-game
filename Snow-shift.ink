@@ -275,15 +275,16 @@ VAR shnekorotor_C_task = "none"
     }
     
     // --- ОСНОВНАЯ СВОДКА ---
-    -- Состояние систем: <>
-    --- Теплостанция: {heat_station_status == "ok": в порядке| сломана}. {heat_station_broken_turns > 0: ВНИМАНИЕ! Не работает уже {heat_station_broken_turns} час(а)!|} <>
-    --- Медпункт: {med_point_status == "ok": в порядке| сломан}. <>
-    --- Теплица: {greenhouse_status == "ok": в порядке| сломана}. <>
-    -- Здоровье малышей: <>
-    --- Соня и Тоня {sonya_tonya_health_status == "healthy": здоровы| ранены}. {sonya_tonya_injured_turns > 0: ВНИМАНИЕ! Они ранены уже {sonya_tonya_injured_turns} час(а)!|} <>
-    -- Ресурсы: <>
+{   
+    -- Состояние систем:
+    --- Теплостанция: {heat_station_status == "ok": в порядке| сломана}. {heat_station_broken_turns > 0: ВНИМАНИЕ! Не работает уже {heat_station_broken_turns} час(а)!|}
+    --- Медпункт: {med_point_status == "ok": в порядке| сломан}.
+    --- Теплица: {greenhouse_status == "ok": в порядке| сломана}.
+    -- Здоровье малышей:
+    --- Соня и Тоня {sonya_tonya_health_status == "healthy": здоровы| ранены}. {sonya_tonya_injured_turns > 0: ВНИМАНИЕ! Они ранены уже {sonya_tonya_injured_turns} час(а)!|}
+    -- Ресурсы:
     --- Запчастей на складе: {parts_at_warehouse}.
-
+}
     -> reset_phase
 
 
@@ -1487,3 +1488,4 @@ VAR shnekorotor_C_task = "none"
         // на случай появления непредвиденных задач.
         ~ return "выполнение особой задачи."
 }
+
